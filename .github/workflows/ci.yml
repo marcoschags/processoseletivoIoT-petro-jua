@@ -7,7 +7,34 @@ on:
     branches: ["**"]
 
 jobs:
+  detect_project:
+    runs-on: ubuntu-latest
+    outputs:
+      project_folder:${{steps.select_folder.output.project_folder}}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Identify active project
+        id: set_folder
+        run: |
+          #Padrão de segurança
+          FOLDER="WEIGHT"
+
+          if [-f "scenarios/WEITHG.txt" ]; then
+            FOLDER=WEITHG
+          elif [ -f "scenarios/TEMPERATURE.txt"]; then
+            FOLDER=TEMPERATURE
+          elif [ -f "scenarios/LIGHT.txt"]; then
+            FOLDER=LIGHT
+          fi
+
+          echo "project_folder=$FOLDER" >> $GITHUB_OUTPUT
+          echo "Projeto ativo detectado: $FOLDER"
+
   build_filesystem:
+    needs: detect_project
     runs-on: ubuntu-latest
 
     steps:
