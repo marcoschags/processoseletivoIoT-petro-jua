@@ -1,6 +1,8 @@
-# Descritivo de Projeto: Contador de Produção Não-Intrusivo (Optical Gate)
+# Descritivo de Projeto: Contador de Produção Não-Intrusivo
 
-Este documento apresenta a especificação técnica e o escopo de desenvolvimento para o projeto de um **Contador de Produção Não-Intrusivo (Optical Gate)**. O objetivo é criar uma solução de baixo custo voltada para indústrias e linhas de montagem manuais ou semiautomáticas que operam sem Controladores Lógicos Programáveis (CLPs), eliminando a necessidade de anotações manuais e fornecendo métricas de produtividade em tempo real.
+Este documento apresenta a especificação técnica e o escopo de desenvolvimento para o projeto de um **Contador de Produção Não-Intrusivo**.
+
+O objetivo é criar uma solução de baixo custo voltada para indústrias e linhas de montagem manuais ou semiautomáticas que operam sem Controladores Lógicos Programáveis (CLPs), eliminando a necessidade de anotações manuais e fornecendo métricas de produtividade em tempo real.
 
 ---
 
@@ -14,9 +16,12 @@ O sistema utiliza um sensor óptico baseado em fotorresistor (LDR) para monitora
 
 Para o desenvolvimento e simulação no ambiente Wokwi, os seguintes componentes e identificadores devem ser mapeados no arquivo `diagram.json`:
 
-- **Microcontrolador:** ESP32 ou Arduino Uno.
+- **Microcontrolador:** ESP32 DevKit C v4 (ESP32 comum).
+<img width="151" height="269" alt="{530B2ACC-0EF3-438A-A21D-6F977BFB2616}" src="https://github.com/user-attachments/assets/757f01c2-ed9e-4969-b2d1-e63671587d8d" />
 - **Sensor Óptico (LDR):** Mapeado com o ID `ldr1`, responsável por ler a variação de luminosidade em _lux_.
+<img width="170" height="83" alt="{3C212723-78F4-4114-AAD1-D56870D27BD4}" src="https://github.com/user-attachments/assets/260000ca-ee39-4829-b90f-29ab51008a98" />
 - **Botão de Reset:** Mapeado com o ID `btn1`, operando em modo Pull-Up ou Pull-Down externo/interno para o reset manual.
+<img width="74" height="60" alt="{901FF8E7-F33E-44C2-8B56-396CB919DD39}" src="https://github.com/user-attachments/assets/042727f2-3bfc-4eab-96bf-74acd93fcf5d" />
 - **Interface de Comunicação:** Saída Serial (UART) para transmissão de logs e telemetria.
 
 ---
@@ -27,9 +32,9 @@ O código-fonte do firmware deve implementar as seguintes máquinas de estado e 
 
 ### A. Inicialização do Sistema
 
-Ao ser energizado, o microcontrolador deve configurar os pinos de entrada e saída, inicializar a comunicação Serial a uma taxa padrão (ex: `115200 bps`) e imprimir obrigatoriamente a mensagem de inicialização no terminal.
+Ao ser energizado, o microcontrolador deve configurar os pinos de entrada e saída, e imprimir obrigatoriamente a mensagem de inicialização no terminal serial.
 
-- **Mensagem Serial Esperada:** `"Contador de Producao Inicializado"`
+- **Mensagem Esperada:** `"Contador de Producao Inicializado"`
 
 ### B. Lógica de Detecção e Contagem de Peças
 
@@ -40,13 +45,13 @@ Ao ser energizado, o microcontrolador deve configurar os pinos de entrada e saí
 
 ### C. Lógica de Detecção de Micro-paradas
 
-- O sistema deve rodar um temporizador não-bloqueante (utilizando `millis()`).
-- Se o sensor `ldr1` permanecer no estado de bloqueio (lux baixo) por um tempo contínuo superior a um limiar parametrizado (ex: 5 segundos), o sistema deve entender que a esteira travou ou há um gargalo.
+- O sistema deve rodar um temporizador não-bloqueante.
+- Se o sensor `ldr1` permanecer no estado de bloqueio (lux baixo) por um tempo contínuo superior a um limiar parametrizado, o sistema deve entender que a esteira travou ou há um gargalo.
 - **Mensagem Serial Esperada:** `"Alerta: Micro-parada detectada!"`
 
 ### D. Rotina de Reset de Turno
 
-- A leitura do botão `btn1` deve conter um tratamento de _debounce_ (via software ou hardware) para evitar falsos gatilhos.
+- A leitura do botão `btn1` deve conter um tratamento de _debounce_ para evitar falsos gatilhos.
 - Ao detectar o acionamento estável do botão, as variáveis globais de contagem de peças e os cronômetros de produtividade devem ser zerados imediatamente.
 - **Mensagem Serial Esperada:** `"Turno resetado com sucesso. Contadores zerados."`
 
@@ -54,7 +59,7 @@ Ao ser energizado, o microcontrolador deve configurar os pinos de entrada e saí
 
 ## 4. Alinhamento com a Automação de Testes (CI)
 
-Para garantir que o código desenvolvido pelo aluno esteja correto, o firmware deve responder estritamente aos estímulos configurados nos cenários do Wokwi CI. O código não deve conter travas de atraso (`delay()`) longas ou bloqueantes em seu loop principal para que as validações de tempo funcionem perfeitamente.
+Para garantir que o código desenvolvido esteja correto, o firmware deve responder estritamente aos estímulos configurados nos cenários do Wokwi CI. O código não deve conter funções bloqueantes longas em seu loop principal para que as validações de tempo funcionem perfeitamente.
 
 ### Parâmetros de Validação no CI
 
