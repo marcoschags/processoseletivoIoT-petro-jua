@@ -1,6 +1,8 @@
-# Descritivo de Projeto: Monitor de Estoque Kanban Inteligente (Balança Automática)
+# Descritivo de Projeto: Monitor de Estoque Kanban Inteligente
 
-Este documento apresenta a especificação técnica e o escopo de desenvolvimento para o projeto de um **Monitor de Estoque Kanban Inteligente**. O objetivo é criar uma solução automatizada e de baixo custo voltada para almoxarifados e linhas de montagem industriais para monitorar o nível de insumos em tempo real através do peso, eliminando a dependência de inspeções visuais manuais e prevenindo a parada de linhas de produção por falta de componentes.
+Este documento apresenta a especificação técnica e o escopo de desenvolvimento para o projeto de um **Monitor de Estoque Kanban Inteligente**.
+
+O objetivo é criar uma solução automatizada e de baixo custo voltada para almoxarifados e linhas de montagem industriais para monitorar o nível de insumos em tempo real através do peso, eliminando a dependência de inspeções visuais manuais e prevenindo a parada de linhas de produção por falta de componentes.
 
 ---
 
@@ -14,8 +16,20 @@ O sistema utiliza um sensor de peso baseado em célula de carga com o amplificad
 
 Para o desenvolvimento e simulação no ambiente Wokwi, os seguintes componentes e identificadores devem ser mapeados no arquivo `diagram.json`:
 
-- **Microcontrolador:** ESP32 ou Arduino Uno.
+- **Microcontrolador:** ESP32 DevKit C v4 (ESP32 comum).
+
+<div align="center">
+<img width="151" height="269" alt="{530B2ACC-0EF3-438A-A21D-6F977BFB2616}" src="https://github.com/user-attachments/assets/757f01c2-ed9e-4969-b2d1-e63671587d8d" />
+</div>
+
 - **Sensor de Peso (Célula de Carga + HX711):** Mapeado com o ID `hx711`, configurado para responder ao controle de carga (`load`) em gramas ($g$).
+
+<div align="center">
+<img width="321" height="193" alt="{81FCE4BA-D114-40BB-AEC7-C5F4B857B16B}" src="https://github.com/user-attachments/assets/95139365-d878-4a7d-913d-dd1aeec81311" />
+</div>
+
+_(Nota: Altere o ID no .json de forma textual)._
+
 - **Interface de Comunicação:** Saída Serial (UART) para transmissão de logs de status, alertas e telemetria para a esteira de integração contínua (CI).
 
 ---
@@ -26,20 +40,22 @@ O código-fonte do firmware deve implementar as seguintes máquinas de estado, v
 
 ### A. Inicialização do Sistema
 
-Ao ser energizado, o microcontrolador deve configurar os pinos de interface com o HX711, inicializar a comunicação Serial a uma taxa padrão (ex: `115200 bps`) e imprimir obrigatoriamente a mensagem de inicialização no terminal antes de qualquer leitura.
+Ao ser energizado, o microcontrolador deve configurar os pinos de interface com o HX711 e imprimir obrigatoriamente a mensagem de inicialização no terminal antes de qualquer leitura.
 
 - **Mensagem Serial Esperada:** `"Sistema Kanban Inicializado"`
 
 ### B. Lógica de Monitoramento de Estoque Regular
 
 - **Estado de Espera (Carga Cheia):** O ambiente inicia com a carga máxima nominal da caixa cheia, correspondente a 5000g.
-- **Zonas de Segurança:** Durante o consumo parcial dos componentes, enquanto o peso lido estiver acima do limite mínimo de segurança (ex: 2500g), o sistema deve entender que o estoque opera em faixa segura.
+- **Zonas de Segurança:** Durante o consumo parcial dos componentes, enquanto o peso lido estiver acima do limite mínimo de segurança, o sistema deve entender que o estoque opera em faixa segura.
 - **Saída Dinâmica:** O firmware deve continuar reportando o estado estável na serial de forma dinâmica.
-- **Mensagem Serial Esperada:** `"Status: Estoque Regular (2500g)"` _(Nota: A string com o valor do peso deve ser atualizada dinamicamente conforme a leitura real do sensor)._
+- **Mensagem Serial Esperada:** `"Status: Estoque Regular (2500g)"`
+
+_(Nota: A string com o valor do peso deve ser atualizada dinamicamente conforme a leitura real do sensor)._
 
 ### C. Lógica de Ciclo Completo (Consumo Crítico e Reabastecimento)
 
-- **Detecção de Caixa Vazia:** Quando o peso cair drasticamente para um limiar de sub-estoque ou nível crítico de tara (ex: 150g), a lógica deve disparar imediatamente um alerta único de reposição na Serial.
+- **Detecção de Caixa Vazia:** Quando o peso cair drasticamente para um limiar de sub-estoque ou nível crítico de tara, a lógica deve disparar imediatamente um alerta único de reposição na Serial.
   - **Mensagem Serial Esperada:** `"Evento de reposição disparado! Caixa vazia detectada."`
 - **Detecção de Reabastecimento:** Após o disparo do alerta, assim que o sensor registrar o retorno do peso para o patamar de carga cheia (5000g), o firmware deve processar a transição positiva de estoque, saindo do estado de alerta e normalizando o fluxo.
   - **Mensagem Serial Esperada:** `"Abastecimento concluído. Caixa cheia."`
@@ -54,14 +70,7 @@ Ao ser energizado, o microcontrolador deve configurar os pinos de interface com 
 
 ## 4. Alinhamento com a Automação de Testes (Wokwi CI)
 
-Para que o projeto seja validado com sucesso na esteira de integração contínua (CI), o firmware deve responder estritamente aos estímulos de carga configurados nos cenários de teste automatizados do Wokwi.
-
-### ⚠️ Requisitos Críticos de Implementação
-
-1. **Casamento Exato de Strings:** O Wokwi CI faz uma verificação estrita caractere por caractere via comando `wait-serial`. Qualquer divergência em letras maiúsculas/minúsculas, acentuação gráfica, espaços ou falta de pontuação causará falha por _timeout_ no teste.
-2. **Arquitetura Não-Bloqueante:** É terminantemente proibido o uso de funções de atraso bloqueantes longas (como `delay()`) dentro do laço principal (`void loop()`). Bloquear a execução impede o microcontrolador de processar as janelas de tempo em que o simulador altera dinamicamente os valores de peso, quebrando a sincronia do CI. Utilize controle de tempo baseado na função `millis()`.
-
-### Parâmetros de Validação no CI
+Para garantir que o código desenvolvido esteja correto, o firmware deve responder estritamente aos estímulos configurados nos cenários do Wokwi CI. O código não deve conter funções bloqueantes longas em seu loop principal para que as validações de tempo funcionem perfeitamente. Mensagens com letras maiúsculas e minúsculas diferentes do específicado serão consideradas erradas.
 
 | Cenário de Teste           | Estímulo do Simulador (`hx711` -> `load`)                                     | Validação Serial Esperada (`wait-serial`)                                                                      |
 | :------------------------- | :---------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------- |
