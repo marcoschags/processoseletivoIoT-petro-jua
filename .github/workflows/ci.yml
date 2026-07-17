@@ -82,3 +82,4 @@ jobs:
       with:
         token: ${{ secrets.WOKWI_CLI_TOKEN }}
         scenario: 'scenarios/${{ needs.detect_project.outputs.project_folder }}/${{ matrix.test_type }}.yaml'
+        timeout: '30000'
