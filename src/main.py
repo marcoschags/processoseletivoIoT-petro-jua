@@ -56,7 +56,7 @@ STATE_REGULAR = "REGULAR"
 while True:
     weight = sensor.read_grams()
 
-    if last_weight is None or abs(weight - last_weight) >= 5:
+    if last_weight is None or abs(weight - last_weight) >= 5 or weight == 0:
         if weight == 0:
             zero_count += 1
             if zero_count >= 3 and last_state != STATE_ANOMALIA:
