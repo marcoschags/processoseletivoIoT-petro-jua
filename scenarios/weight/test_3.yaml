@@ -18,6 +18,9 @@ steps:
       control: load
       value: 0
 
-  # 4. O sistema deve identificar que o valor está incorreto/crítico e alertar a manutenção
+  # 4. Aguarda 3 ciclos de leitura (15s) para o debounce de leituras zero confirmar anomalia
+  - delay: 16s
+
+  # 5. O sistema deve identificar que o valor está incorreto/crítico e alertar a manutenção
   - wait-serial: 'ALERTA: Caixa ausente ou erro de calibração no sensor HX711!'
   - delay: 500ms
