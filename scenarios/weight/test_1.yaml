@@ -23,4 +23,4 @@ steps:
   
   # 5. Valida que o sistema NÃO enviou alerta e continua em estado normal
   # Nota: Se a mensagem de reposição aparecer aqui, o teste falhará por timeout.
-  - wait-serial: 'Status: Estoque Regular (2500g)'
+  - wait-serial: 'Status: Estoque Regular (2.5kg)'
