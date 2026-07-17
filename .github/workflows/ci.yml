@@ -64,7 +64,13 @@ jobs:
     strategy:
       # Define os 3 tipos de sub-testes que existem para todos os cenários
       matrix:
-        test_type: [test_1, test_2, test_3]
+        test_type:
+          - name: test_1
+            expect_text: 'Status: Estoque Regular (2.5kg)'
+          - name: test_2
+            expect_text: 'Abastecimento concluído. Caixa cheia.'
+          - name: test_3
+            expect_text: 'ALERTA: Caixa ausente ou erro de calibração no sensor HX711!'
 
     steps:
     - name: Checkout repository
@@ -81,5 +87,6 @@ jobs:
       uses: wokwi/wokwi-ci-action@v1
       with:
         token: ${{ secrets.WOKWI_CLI_TOKEN }}
-        scenario: 'scenarios/${{ needs.detect_project.outputs.project_folder }}/${{ matrix.test_type }}.yaml'
+        scenario: 'scenarios/${{ needs.detect_project.outputs.project_folder }}/${{ matrix.test_type.name }}.yaml'
+        expect_text: ${{ matrix.test_type.expect_text }}
         timeout: '30000'
