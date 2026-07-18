@@ -85,4 +85,4 @@ while True:
 
         last_weight = weight
 
-    time.sleep_ms(5000)
+    time.sleep_ms(100)
