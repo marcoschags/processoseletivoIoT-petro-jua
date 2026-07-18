@@ -1,14 +1,16 @@
 # Use the official ESP-IDF image
 FROM espressif/idf:v5.2.2
 
+ARG INCLUDE_CALIBRATION=0
+
 # Set ESP-IDF path
 ENV IDF_PATH="/opt/esp/idf/"
 
 WORKDIR "/"
 
-# RUN mkdir -p /fs
 COPY src/main.py /main.py
-# COPY boot.py /boot.py
+COPY src/calibration.py /calibration.py
+RUN if [ "$INCLUDE_CALIBRATION" = "0" ]; then rm /calibration.py; fi
 
 RUN git clone https://github.com/earlephilhower/mklittlefs.git && \
   cd mklittlefs && \
@@ -19,8 +21,6 @@ RUN git clone https://github.com/earlephilhower/mklittlefs.git && \
 RUN cd mklittlefs && \
   mkdir -p ~/fs && \
   cp /*.py ~/fs/ && \
-  #  cp /boot.py ~/fs/boot.py && \
   ./mklittlefs -c ~/fs -b 4096 -p 256 -s 0x200000 /fs.bin
-
 
 CMD ["/bin/bash"]
