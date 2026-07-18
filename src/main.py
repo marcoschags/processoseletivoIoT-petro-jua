@@ -16,7 +16,7 @@ class HX711:
         self.pd_sck.value(0)
 
     def read(self):
-        timeout = 200
+        timeout = 5
         while self.dout.value() == 1:
             time.sleep_ms(1)
             timeout -= 1
