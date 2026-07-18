@@ -1,11 +1,8 @@
-# Use the official ESP-IDF image
 FROM espressif/idf:v5.2.2
 
 ARG INCLUDE_CALIBRATION=0
 
-# Set ESP-IDF path
 ENV IDF_PATH="/opt/esp/idf/"
-
 WORKDIR "/"
 
 COPY src/main.py /main.py

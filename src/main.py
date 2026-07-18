@@ -47,9 +47,8 @@ print("Sistema Kanban Inicializado")
 
 last_weight = None
 last_state = None
-last_g_exibido = None
 zero_since = 0
-ANOMALIA_DEBOUNCE_MS = 14100
+ANOMALIA_DEBOUNCE_MS = 16000
 
 STATE_ANOMALIA = "ANOMALIA"
 STATE_VAZIA = "VAZIA"
@@ -70,24 +69,22 @@ while True:
             elif time.ticks_diff(now, zero_since) >= ANOMALIA_DEBOUNCE_MS and last_state != STATE_ANOMALIA:
                 print("ALERTA: Caixa ausente ou erro de calibração no sensor HX711!")
                 last_state = STATE_ANOMALIA
-                last_g_exibido = None
         elif weight <= LIMITE_CRITICO:
             zero_since = 0
             if last_state != STATE_VAZIA:
                 print("Evento de reposição disparado! Caixa vazia detectada.")
                 last_state = STATE_VAZIA
-                last_g_exibido = None
         elif weight >= CAIXA_CHEIA and last_state == STATE_VAZIA:
             zero_since = 0
             print("Abastecimento concluído. Caixa cheia.")
             last_state = STATE_REGULAR
         else:
             zero_since = 0
-            if last_g_exibido is None or weight != last_g_exibido:
-                print("Status: Estoque Regular ({}g)".format(weight))
-                last_g_exibido = weight
             last_state = STATE_REGULAR
 
         last_weight = weight
+
+    if last_state == STATE_REGULAR and weight > 0:
+        print("Status: Estoque Regular ({}g)".format(weight))
 
     time.sleep_ms(2000)
