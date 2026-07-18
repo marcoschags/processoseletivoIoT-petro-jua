@@ -57,12 +57,14 @@ while True:
     weight = sensor.read_grams()
 
     if last_weight is None or abs(weight - last_weight) >= 5 or weight == 0:
+        print("Leitura: {}kg".format(weight))
         if weight == 0:
             zero_count += 1
             if zero_count >= 3 and last_state != STATE_ANOMALIA:
                 print("ALERTA: Caixa ausente ou erro de calibração no sensor HX711!")
                 last_state = STATE_ANOMALIA
                 last_kg_exibido = None
+                break
         elif weight <= LIMITE_CRITICO:
             zero_count = 0
             if last_state != STATE_VAZIA:
