@@ -16,11 +16,9 @@ class HX711:
         self.pd_sck.value(0)
 
     def read(self):
-        timeout = 5
-        while self.dout.value() == 1:
-            time.sleep_ms(1)
-            timeout -= 1
-            if timeout <= 0:
+        if self.dout.value() == 1:
+            time.sleep_ms(100)
+            if self.dout.value() == 1:
                 return 0
         value = 0
         for _ in range(24):
